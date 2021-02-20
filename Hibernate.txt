@@ -1,0 +1,476 @@
+Link - https://www.youtube.com/playlist?list=PL0zysOflRCekX8OO7V7pGQ9kxZ28JyJlk
+(Learn code with Durgesh)
+
+One To One Mapping 
+------------------
+>> There are two tables i.e. Question and Answer tables.
+
+>> Every question do have one answer assocciated with it.
+
+>> Question class do have fields question_id, question and answer. Moreover, annotate this class as @Entity and aanotate answer field as @onetoone because the primary key of answer table i.e.answer_id will be used as foreign key in question table.So, the question table do have three columns i.e.  question_id, question, answer_id.In addition to this, we can change column name i.e. answer_id in question table by annotation answer field  @JoinColumn(name = "a_id").
+
+>> Answer class do have answer_id and answer field.Moreover, annotate this class as @Entity and answer_id will be used as foreign key in Question table.
+
+>> We can do one to one mapping as unidirectional and bidirectional. 
+
+>> As a part of bidirectional, we can do one to one mapping in both entity classes i.e. Question and Answer. Like Question entity class, if we do one to one mapping in Answer entity class then the question_id will be used as foreign key in Answer table. So, the answer table do have three columns i.e.answer_id, answer and question_id.
+
+>> In Answer entity class, add property @oneToone(mappedBy = "answer") on question field, so that question_id foriegn key will not be created in answer table.In this way, it is mapped because foreign key will created in question table i.e. one foreign key.
+
+>> In main class, 
+	Configuration cfg = new Configuration(); 
+	cfg.configure("hibernate.cfg.xml");
+	SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+	//creating question
+	Question q1 = new Question();
+	q1.setQuestionId(1212);
+	q1.setQuestion("What is java ?");
+
+	//creating answer
+	Answer answer = new Answer();
+	answer.setAnswerId(343);
+	answer.setAnswer("Java is a programming language");
+	q1.setAnswer(answer);
+
+	//Open Session 
+	Session session = sessionFactory.openSession();
+	Transaction tx = session.beginTransaction();
+	session.save(q1);
+	session.save(answer);
+	tx.commit();
+
+One To Many & Many To One Mapping 
+---------------------------------
+>> One question do have multiple answers.
+
+>> There are two tables i.e. Question and Answer tables.
+
+>> Question class do have fields question_id, question and List<Answer> answers. Moreover, annotate this class as @Entity and aanotate answer field as @OnetoMany.In addition to this, add @OneToMany(mappedBy = "question") on List of answers field, so that join column work has been prohibited for answers field.Finally, question table have column names question_id, question.
+Note - if we won't specify mappedBy property then it will create one extra table i.e. question_answer table.
+
+>> Answer class do have fields answer_id, answer, question. Moreover, annotate this class as Entity and annotate question field as @ManytoOne.Here, in answer table will have join column having field column names answer_id, answer, question_question_id.
+
+>> In the main class, 
+
+	Configuration cfg = new Configuration(); 
+	cfg.configure("hibernate.cfg.xml");
+	SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+	//creating question
+	Question q1 = new Question();
+	q1.setQuestionId(1212);
+	q1.setQuestion("What is java ?");
+
+	//creating answer
+	Answer answer = new Answer();
+	answer.setAnswerId(343);
+	answer.setAnswer("Java is a programming language");
+	answer.setQuestion(q1);
+
+	Answer answer1 = new Answer();
+	answer1.setAnswerId(33);
+	answer1.setAnswer("With the help of Java we can create Microservices");
+	answer1.setQuestion(q1);
+
+	Answer answer2 = new Answer();
+	answer2.setAnswerId(363);
+	answer2.setAnswer("Java has different types of frameworks");
+	answer2.setQuestion(q1);
+
+
+	//Open Session 
+	Session session = sessionFactory.openSession();
+	Transaction tx = session.beginTransaction();
+	session.save(q1);
+	session.save(answer);
+	session.save(answer1);
+	session.save(answer2);
+
+	OR
+	--
+	Fetching Data
+	-------------
+	Question q = (Question) session.get(Question.class, 1212);
+	System.out.Println(q.getQuestion());
+	
+	for(Answer a:q.getAnswers()){
+	System.out.Println(q.getAnswers());
+	}
+
+	tx.commit();
+
+Many To Many Mapping 
+--------------------
+>> In Many To Many mapping, multiple employee can enroll to a project and multiple project can enroll to a employee.
+
+>> In employee entity class, employee_id and Employeename are the fields.In this case of many to many mapping, multiple project can enroll to a employee(i.e. one employee can have many projects), so make List<Project> projects. In addition to this, annotate @ManyToMany over private List<Project> projects. 
+
+>> In project entity class, project_id and projectName are the fields. In this case of many to many mapping, multiple employee  can enroll to a project(i.e.), so make List<Employee> employess. In addition to this , annotate @ManyToMany over private List<Employee> employess.
+
+>> In this whole process of many to many mapping, at least two employee and two project need to be created.
+
+	Configuration cfg = new Configuration(); 
+	cfg.configure("hibernate.cfg.xml");
+	SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+	Emp e1 = new Emp();
+	Emp e2 = new Emp();
+
+	e1.setEmployeeId(34);
+	e1.setName("Ram");
+
+	e2.setEmployeeId(37);
+	e2.setName("Shyam");
+
+	Project p1 = new Project();
+	Project p2 = new Project();
+
+	p1.setProjectId(1212);
+	p1.setProjectName("Library Management System");
+
+	p2.setProjectId(14214);
+	p2.setProjectName("Ofcom");
+
+	List<Employee> list1 = new ArrayList<Employee>();
+	List<Project> list2 = new ArrayList<Project>();
+	
+	list1.add(e1);
+	list1.add(e2);
+
+	list2.add(p1);
+	list2.add(p2);
+
+	//one employee enroll to multiple project
+	e1.setProjects(list2);
+
+	//one project enroll to multiple employee
+	p2.setEmployees(list1);
+
+	//Open Session 
+	Session session = sessionFactory.openSession();
+	Transaction tx = session.beginTransaction();
+	session.save(e1);
+	session.save(e2);
+	session.save(p1);
+	session.save(p2);
+
+>> In Project entity class, annotate @ManyToMany(mappedBy = "projects") on private List<Employee> employees.Here, it is mapped by projects column. 
+
+>> In Employee entity class, annotate @ManyToMany on private List<Project> projects.Also, annotate @JoinTable(
+name = "emp_learn",
+joinColumns = {@joinColumn(name="eid")},
+inverseJoinColumn = {@joinColumn(name="pid")}
+
+>>On execution, emp_learn table contains two columns i.e eid and pid.
+
+Fetch Technique
+---------------
+There are two types of fetch types
+1. Lazy Fetch Type - The associated data loads only when we explicitly call getter or setter method.
+
+In Many To One mapping, 
+	Question q = (Question) session.get(Question.class, 1212);
+	System.out.Println(q.getQuestionId());
+	System.out.Println(q.getQuestion());
+	//Lazy
+	System.out.Println(q.getAnswers().size());
+
+Here, it is lazy loading because when there is need than we get the data by calling getAnswers().size(). When we raise question then associated data will not be fetched.When associated data getter to call or call its size the only data will get fetched.
+
+2. Eager Fetch Type - It is a design pattern in which data loading occurs on the spot.
+
+@OneToOne(mappedBy = "question", fetch = FetchType.EAGAR)
+private List<Answer> answers;
+
+Here, once the question is raised then immediately it will fetch all answers against that question.
+
+Moreover, by deafult the fetch type is lazy but explicitly we can make lazy i.e. 
+@OneToOne(mappedBy = "question", fetch = FetchType.LAZY)
+
+Fetching Object get() method and load() method 
+----------------------------------------------
+>> In a table, if we know id of a row then we can fetch the data.Session do have two functions i.e. get() and load() if we fetch data or object.
+
+>> In configuration.cfg.xml, if we will specify update in hbm2ddl.auto property then it won't create table for 2nd time.
+
+Note - We no need to raise Transaction because we will not save data.When we will save data then only we need Transaction.
+
+>> In main class,  
+	Configuration cfg = new Configuration(); 
+	cfg.configure("hibernate.cfg.xml");
+	SessionFactory sessionFactory = cfg.buildSessionFactory();
+	Session session = sessionFactory.openSession();
+	
+	//get-student - 106. We no need to use select statement to fetch data
+	session.get(Student.class, 106);
+	System.out.println(student); 
+
+	//get-student - 106. We no need to use select statement to fetch data
+	session.load(Student.class, 106);
+	System.out.println(student); 
+
+	session.close();
+	session.commit();
+
+Both get() and load() methods are two similar methods but do have difference.
+Differences 
+-----------
+1. get() method - get method in hibernate session returns null if object is not found in cache as well as in database.
+
+  load() method - load method throws ObjectNotFoundException is object is not found in cache we well as in database but never return null.
+
+2. get() method - Use get method when you are not sure whether object exists in database or not.
+
+   load() method - Use load method when you are sure that object do exists in database.
+
+3. get() method - get method will hit database and fetch data in which data will store in cache memory.When again 
+   there is a requirement for the same data/object then it will check first in session cache and if data/object is 
+   detected in session cache then it will not hit database again.However, if we call get and fetched data which 
+   stored in session cache.And, after that we clear session and when we call get again then it will hit database 
+   because data/object is cleared from session cache memory.
+
+   load() method - load method will return proxy object/data and only initialize object or hit database when if       any method is called on persistent or entity object. This is also called lazy initialization.This also increses    the performance.
+
+Hibernate/Persistence Lifecycle States 
+--------------------------------------
+The process where the object persisted and saved in the database is called the lifecycle states. In object lifecycle states, there are four states i.e. Transient State, Persistent State, Detached State.
+
+1. Transient State - In this state, object is newly created but not associated with session nor available in database then this object is called Transient state.
+
+2. Persistent State - In this state, object is associated with session and also in database and persisted/save in database.
+
+3. Detached State - In this state, when we close the session or clear its cache memory then it entered into detached state.As an object is no more associated with the Session, modifications in the data don't affect any changes in the database.Here, the object is not associated with session anymore.
+
+Hibernate Cascading 
+-------------------
+>> While we apply cascading in a entity class and perform save, delete, merge operations on that entity clas then it will automatically save, delete, merge all child entity classes.
+
+>> If we won't apply cascading then we need to manually perform save, delete, merge operations in child entity classes when you do same operations in parent entity class.
+
+>> For example, In one to many mapping, we have a Question entity class and Answer entity class.As per one to many mapping, a single question do have multiple answer associated with it.
+
+>> We will apply cascading in Question entity class.So, when we do any operation over Question entity class then Answer entity class will automatically save.
+
+>> In Question entity class, annotate @ManyToMany(mappedBy = "question", fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+private List<Answer> answers;
+
+>> In main class,
+
+	Configuration cfg = new Configuration(); 
+	cfg.configure("hibernate.cfg.xml");
+	SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+	//creating question
+	Question q1 = new Question();
+	q1.setQuestionId(1212);
+	q1.setQuestion("What is java ?");
+
+	Answer a1 = new Answer(23423, "It is a programming language");
+	Answer a2 = new Answer(255, "It has many frameworks");
+	Answer a3 = new Answer(23423, "It supports springboot microservice");
+
+	List<Answer> list = new ArrayList<>();
+	list.add(a1);
+	list.add(a2);
+	list.add(a3);
+
+	q1.setAnswers(list);
+
+	Session session = sessionFactory.openSession();
+	Transaction tx = session.beginTransaction();
+
+	session.save(q1);
+	tx.commit();
+	session.close();
+	sessionFactory.close();
+	
+Here, when we save question q1 then all its related answers will automatically save.
+
+Hibernate Cashing
+-----------------
+>> Cashing is a mechanism to enhance the performance of the application.
+
+>> Cashing is use to reduce the number of database queries.
+
+>> When we require a object from database then it will hit the database and get that object.While manytimes, it will hit the same object multiple times from database then obviously the application performance will get down.
+
+>> In order to improve the mechanism, we will introduce hibernate caching mechanism which works as middle layer between application and database.When we will hit the database to retrieve that object then the request first comes to hibernate. Hibernate then forward the request to database and retrieve that object and get that object stored in hibernate cache memory first and then return object to application where the request for that object is requested.Moreover, when multiple database calls is requested for that same object then hibernate won't hit the database but return that same object which is stored in hibernate cache memory. In this way, application performance improve.
+
+>> Hibernate uses First level caching and Second level caching.While there is another type of caching is there that is query level caching but this we won't be using.
+
+>> First Level Caching - It is associted with session object.When we fetch data then obviously it get saved in session object.If we didn't close the session object and fire the same query then it won't hit the database because we are using First level cache.In addition to this, First level cache is by default provided by Hibernate framework and no need to do any configuration for this.
+
+SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
+Session session = sessionFactory.openSession();
+
+Student student = session.get(Student.class, 12424);
+S.O.P(student);
+
+
+Student student1 = session.get(Student.class, 12424);
+S.O.P(student1);
+
+S.O.P(session.contains(student1));
+
+session.close();
+
+Here, First level cache is active by default till the session is close. When we hit the second get statement then while we execute program no second select query is fired for the same object.
+
+
+>> Second Level Caching - It is associated with session factory object.For whole application, there is one session factory object.If we store data in session factory object then entire application can use this data without firing any query again and again.In addition to this, we need to enable Second level cache manually and we need to do configuration in order to use this cache.
+
+configure Second Level Cache(Ehcache)
+----------------------------
+>> In POM.xml, add ehcache dependency
+
+<dependency>
+<groupId>net.sf.ehcache</groupId>
+<artifactId>ehcache</artifactId>
+<version>2.10.6</version>
+</dependency>
+
+<dependency>
+<groupId>org.hibernate</groupId>
+<artifactId>hibernate-ehcache</artifactId>
+<version>5.4.5.Final</version> (This version need to match with hibernate version that is being used in project)
+</dependency>
+
+>> SecondLevelCache.java(main class)
+   ---------------------------------
+import org.hibernate.cache.ehcache.internal.EhCacheRegionFactory
+
+SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
+Session session1 = sessionFactory.openSession();
+
+Student student1 = session1.get(Student.class, 12424);
+S.O.P(student1);
+
+session1.close();
+
+Session session2 = sessionFactory.openSession();
+
+Student student2 = session2.get(Student.class, 12424);
+S.O.P(student2);
+
+session2.close();
+
+Here, we fire query twice with multiple session i.e. session1 and session2 but while the application executes, it will fire only one query for the same object.
+
+>> Enable cache - Go to hibernate configuration file i.e.hibernate.cfg.xml file.
+<property name="cache.use_second_level_cache">true</property>
+That means, we tell hibernate that we will be using second level cache.
+ 
+//Now, tell hibernate the class that we would be using for second level cache
+<property name="cache.region.factory_class">org.hibernate.cache.ehcache.internal.EhCacheRegionFactory</property>
+
+>> Enable cache in entity class.
+
+@Entity
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+public class Student{
+
+@Id
+private int id;
+private String name;
+private String city;
+ 
+------
+------
+} 
+
+Embedding Objects
+-----------------
+>> In hibernate, when we use one entity class fields in other entity class table then this scenario is called embedding objects.
+
+>> Suppose there are two entity classes i.e. Student entity class and Certificate entity class. If we want to use Certificate entity class fields in Student entity class table then we need to annotate @Embeddable in Certificate entity class.
+
+@Embeddable
+pubic class certificate
+
+>> In Certificate entity class, annotate @Embeddable to class
+
+@Embeddable
+pubic class certificate {
+
+private String course;
+private String duration;
+
+}
+
+
+>> In main class,
+
+SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
+Session session1 = sessionFactory.openSession();
+
+Student student1 = new Student();
+student1.setId(14134);
+student1.setName("Ankit Tiwari");
+student1.setCity("LKO");
+
+Certificate cert = new Certificate();
+cert.setCourse("Anroid");
+cert.setDuration("2 months");
+student1.setCert(cert);
+
+Student student2 = new Student();
+student2.setId(14135);
+student2.setName("Lalit Tiwari");
+student2.setCity("KKO");
+
+Certificate cert1 = new Certificate();
+cert1.setCourse("Java");
+cert1.setDuration("3 months");
+student2.setCert(cert1);
+
+Session session = sessionFactory.openSession();
+Transaction tx = session.beginTransaction();
+
+//objects save
+session.save(student1);
+session.save(student2);
+
+tx.commit();
+session.close();
+sessionFactory.close();
+
+
+>> As we need to create table, apply "create" in hbm2ddl property in hibernate.cfg.xml file.
+
+>> While we run application, Student table do have columns sid, name, course, duration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+	
+
+
+	
+
+	
+	
+
+
+
+
